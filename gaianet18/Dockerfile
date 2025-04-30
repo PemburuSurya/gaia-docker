@@ -1,4 +1,4 @@
-# Use Ubuntu 22.04 as base image
+# Use Ubuntu 22.04 as base image (pinned version)
 FROM ubuntu:22.04
 
 # Set environment variables to avoid interactive prompts
@@ -13,25 +13,29 @@ RUN apt-get update && \
         openssl \
         wget \
         python3 \
+        lsof \
         python3-pip \
         build-essential \
         libssl-dev \
-        pciutils && \
+        pciutils \
+        libwebkit2gtk-4.0-dev \
+        libgtk-3-dev \
+        libayatana-appindicator3-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Create gaianet user and directories
-RUN useradd -m gaianet15 && \
-    mkdir -p /home/gaianet15/gaianet && \
-    chown -R gaianet15:gaianet15 /home/gaianet15
+RUN useradd -m gaianet18 && \
+    mkdir -p /home/gaianet18/gaianet && \
+    chown -R gaianet18:gaianet18 /home/gaianet18
 
 # Switch to gaianet user
-USER gaianet15
-WORKDIR /home/gaianet15
+USER gaianet18
+WORKDIR /home/gaianet18
 
 # Set environment variables
-ENV HOME=/home/gaianet15
-ENV GAIANET_BASE_DIR=/home/gaianet15/gaianet
-ENV PATH="/home/gaianet15/gaianet/bin:${PATH}"
+ENV HOME=/home/gaianet18
+ENV GAIANET_BASE_DIR=/home/gaianet18/gaianet
+ENV PATH="/home/gaianet18/gaianet/bin:${PATH}"
 
 # Create necessary directories
 RUN mkdir -p $GAIANET_BASE_DIR/{bin,log,qdrant,gaia-frp,tmp}
@@ -42,15 +46,21 @@ RUN for i in {1..5}; do \
       sleep 15; \
     done
 
-# Initialize with the provided config
-RUN gaianet init --config https://raw.githubusercontent.com/PemburuSurya/gaianet/main/qwen1.5./config.json
+# Source .bashrc and verify installation
+RUN echo 'source ~/.bashrc' >> ~/.bash_profile && \
+    sleep 2 && \
+    /bin/bash -c "source ~/.bashrc && which gaianet && gaianet --version"
+
+# Initialize with the provided config (fixed URL)
+RUN /bin/bash -c "source ~/.bashrc && \
+    gaianet init --config https://raw.githubusercontent.com/PemburuSurya/gaianet/main/qwen1.5/config.json"
 
 # Copy entrypoint script
-COPY --chown=gaianet15:gaianet15 entrypoint.sh /home/gaianet15/entrypoint.sh
-RUN chmod +x /home/gaianet15/entrypoint.sh
+COPY --chown=gaianet18:gaianet18 entrypoint.sh /home/gaianet18/entrypoint.sh
+RUN chmod +x /home/gaianet18/entrypoint.sh
 
 # Expose necessary ports
 EXPOSE 8080 8081 8082 6333 6334
 
 # Set entrypoint
-ENTRYPOINT ["/home/gaianet15/entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "-c", "source ~/.bashrc && /home/gaianet18/entrypoint.sh"]
