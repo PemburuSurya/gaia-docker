@@ -24,18 +24,18 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Create gaianet user and directories
-RUN useradd -m gaianet20 && \
-    mkdir -p /home/gaianet20/gaianet && \
-    chown -R gaianet20:gaianet20 /home/gaianet20
+RUN useradd -m gaianet16 && \
+    mkdir -p /home/gaianet16/gaianet && \
+    chown -R gaianet16:gaianet16 /home/gaianet16
 
 # Switch to gaianet user
-USER gaianet20
-WORKDIR /home/gaianet20
+USER gaianet16
+WORKDIR /home/gaianet16
 
 # Set environment variables
-ENV HOME=/home/gaianet20
-ENV GAIANET_BASE_DIR=/home/gaianet20/gaianet
-ENV PATH="/home/gaianet20/gaianet/bin:${PATH}"
+ENV HOME=/home/gaianet16
+ENV GAIANET_BASE_DIR=/home/gaianet16/gaianet
+ENV PATH="/home/gaianet16/gaianet/bin:${PATH}"
 
 # Create necessary directories
 RUN mkdir -p $GAIANET_BASE_DIR/{bin,log,qdrant,gaia-frp,tmp}
@@ -56,11 +56,11 @@ RUN /bin/bash -c "source ~/.bashrc && \
     gaianet init --config https://raw.githubusercontent.com/PemburuSurya/gaianet/main/qwen1.5/config.json"
 
 # Copy entrypoint script
-COPY --chown=gaianet20:gaianet20 entrypoint.sh /home/gaianet20/entrypoint.sh
-RUN chmod +x /home/gaianet20/entrypoint.sh
+COPY --chown=gaianet16:gaianet16 entrypoint.sh /home/gaianet16/entrypoint.sh
+RUN chmod +x /home/gaianet16/entrypoint.sh
 
 # Expose necessary ports
 EXPOSE 8080 8081 8082 6333 6334
 
 # Set entrypoint
-ENTRYPOINT ["/bin/bash", "-c", "source ~/.bashrc && /home/gaianet20/entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "-c", "source ~/.bashrc && /home/gaianet16/entrypoint.sh"]
